@@ -53,7 +53,7 @@ class ARMLoss(nn.Module):
         conf_t = loc_pred.data.new(num, num_anchors).long()
   
         # pdb.set_trace()
-        for idx in xrange(num):
+        for idx in range(num):
             cur_targets = targets[idx].data
             valid_targets = cur_targets[cur_targets[:, -1] > 0]
             truths = valid_targets[:, :-1]
@@ -70,7 +70,7 @@ class ARMLoss(nn.Module):
         pos_conf_flag = conf_t.new(conf_t).byte()
         neg_conf_flag = conf_t.new(conf_t).byte()
         
-        for idx in xrange(num):
+        for idx in range(num):
             single_conf_t = conf_t[idx]
             pos = single_conf_t > 0
             pos_loc_flag[idx] = pos.unsqueeze(1).expand_as(loc_t[idx])
@@ -98,9 +98,9 @@ class ARMLoss(nn.Module):
             pos_conf_flag[idx] = pos
             neg_conf_flag[idx] = neg
 
-        pos_loc_t = loc_t[pos_loc_flag.detach()].view(-1, 4)
+        pos_loc_t = loc_t[pos_loc_flag.detach().bool()].view(-1, 4)
         # # Select postives to compute bounding box loss.
-        pos_loc_pred = loc_pred[pos_loc_flag.detach()].view(-1, 4)
+        pos_loc_pred = loc_pred[pos_loc_flag.detach().bool()].view(-1, 4)
         # loss_l = functional.smooth_l1_loss(pos_loc_pred, pos_loc_t, size_average=False)
         loss_l = functional.smooth_l1_loss(pos_loc_pred, pos_loc_t, reduction='sum')
         # pdb.set_trace()

@@ -20,6 +20,22 @@ import numpy as np
 import random
 import pdb
 
+#import warnings
+#warnings.filterwarnings("ignore", category=UserWarning)
+
+import traceback
+import warnings
+import sys
+
+import cv2
+cv2.setNumThreads(0)
+
+def warn_with_traceback(message, category, filename, lineno, file=None, line=None):
+    log = file if hasattr(file,'write') else sys.stderr
+    traceback.print_stack(file=log)
+    log.write(warnings.formatwarning(message, category, filename, lineno, line))
+
+warnings.showwarning = warn_with_traceback
 
 def setup_seed(seed):
     torch.manual_seed(seed)

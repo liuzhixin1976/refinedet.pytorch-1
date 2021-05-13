@@ -199,7 +199,7 @@ def match_with_flags(threshold, truths, anchors, ignore_flags, variances,
     matches = truths[best_truth_idx]  # Shape: [num_anchors,4]
     conf = labels[best_truth_idx] # Shape: [num_anchors]   
     # Since some elements in best_truth_overlap may be Nan, we use >= threshold
-    background_flag = 1 - (best_truth_overlap >= threshold)
+    background_flag = ~(best_truth_overlap >= threshold)
     conf[background_flag] = 0
     # All location is stored ? but use conf > 0 to indicate which is valid.
     # It is better to modify loc to zeros, or weights to indicate

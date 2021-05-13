@@ -114,7 +114,13 @@ class TCB(nn.Module):
         self.conv3 = nn.Conv2d(internal_channels, internal_channels,
                                kernel_size=3, padding=1, bias=use_bias)
         self.relu = nn.ReLU(inplace=True)
-        
+
+        # added by zhixin
+        self.deconv_2 = nn.ConvTranspose2d(internal_channels, internal_channels,
+                kernel_size=3, stride=2,padding=1, output_padding=1,bias=use_bias)
+        #self.match_channel = nn.Conv2d(channles, internal_channels,kernel_size=1, padding=1, bias=use_bias)
+        self.pooling = nn.MaxPool2d(kernel_size=2, stride=2)
+
         if self.is_batchnorm:
             self.bn1 = nn.BatchNorm2d(internal_channels)
             self.bn2 = nn.BatchNorm2d(internal_channels)
@@ -122,21 +128,47 @@ class TCB(nn.Module):
             self.bn3 = nn.BatchNorm2d(internal_channels)
         # attribution
         self.out_channels = internal_channels
-    
+
+
     def forward(self, lateral, x):
         if self.is_batchnorm:
-            lateral_out = self.relu(self.bn1(self.conv1(lateral)))
-            # element-wise addation
-            out = self.relu(self.bn2(self.conv2(lateral_out)) +
-                            self.deconv_bn(self.deconv(x)))
+            #lateral_out = self.relu(self.bn1(self.conv1(lateral)))
+            ## element-wise addation
+            #out = self.relu(self.bn2(self.conv2(lateral_out)) +
+            #                self.deconv_bn(self.deconv(x)))
+            #out = self.relu(self.bn3(self.conv3(out)))
+            # code by zhixin
+            ###lateral_out = self.relu(self.bn1(self.conv1(lateral)))
+            lateral_out = self.bn1(self.conv1(lateral))
+            out = lateral_out - self.deconv_bn(self.deconv(x))
+            #out = self.relu(self.bn2(self.conv2(lateral_out)) - self.deconv_bn(self.deconv(x)))
+            out = self.pooling(out)
+            #print(out.shape)
+            #x2 = self.match_channel(x)
+            #print(x.shape)
+            #print(x2.shape)
+            out = out + x
+            out = self.deconv_2(out)
             out = self.relu(self.bn3(self.conv3(out)))
         else:
-            # no batchnorm
-            lateral_out = self.relu(self.conv1(lateral))
-            # element-wise addation
-            out = self.relu(self.conv2(lateral_out) + self.deconv(x))
+            ## no batchnorm
+            #lateral_out = self.relu(self.conv1(lateral))
+            ## element-wise addation
+            #out = self.relu(self.conv2(lateral_out) + self.deconv(x))
+            #out = self.relu(self.conv3(out))
+            # code by zhixin
+            ###lateral_out = self.relu(self.conv1(lateral))
+            lateral_out = self.conv1(lateral)
+            ###out = self.relu(self.conv2(lateral_out) - self.deconv(x))
+            out = lateral_out - self.deconv(x)
+            out = self.pooling(out)
+            #print(out.shape)
+            #x2 = self.match_channel(x)
+            #print(x.shape)
+            #print(x2.shape)
+            out = out + x
+            out = self.deconv_2(out)
             out = self.relu(self.conv3(out))
-        
         return out
 
 
